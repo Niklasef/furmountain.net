@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Source the .profile to get environment variables
+source /home/niklas/.profile
+
 RESOURCE_GROUP="furmountain-net"
 ZONE_NAME="furmountain.net"
 RECORD_SET_NAME="johannes"
