@@ -1,21 +1,14 @@
 #!/bin/bash
 
-# Azure Service Principal Credentials
-# APP_ID="your-app-id"
-# PASSWORD="your-password/client-secret"
-# TENANT_ID="your-tenant-id"
+RESOURCE_GROUP="furmountain-net"
+ZONE_NAME="furmountain.net"
+RECORD_SET_NAME="johannes"
 
-# # Other Azure Details
-# SUBSCRIPTION_ID="your-subscription-id"
-# RESOURCE_GROUP="your-resource-group"
-# ZONE_NAME="your-zone-name"
-# RECORD_SET_NAME="your-record-set-name"
+# Get the current public IP
+CURRENT_IP=$(curl -s https://api.ipify.org)
 
-# # Get the current public IP
-# CURRENT_IP=$(curl -s https://api.ipify.org)
-
-# # Login to Azure
-# az login --service-principal --username $APP_ID --password $PASSWORD --tenant $TENANT_ID
+# Login to Azure
+az login --service-principal --username $AZURE_SVC_APP_ID --password $AZURE_SVC_PASSWORD --tenant $AZURE_TENANT_ID
 
 # Update DNS A record
 az network dns record-set a add-record \
@@ -23,4 +16,4 @@ az network dns record-set a add-record \
     --zone-name $ZONE_NAME \
     --record-set-name $RECORD_SET_NAME \
     --ipv4-address $CURRENT_IP \
-    --subscription $SUBSCRIPTION_ID
+    --subscription $AZURE_SUBSCRIPTION_ID
