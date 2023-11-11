@@ -13,7 +13,15 @@ CURRENT_IP=$(curl -s https://api.ipify.org)
 # Login to Azure
 az login --service-principal --username $AZURE_SVC_APP_ID --password $AZURE_SVC_PASSWORD --tenant $AZURE_TENANT_ID
 
-# Update DNS A record
+# Delete the existing A record set
+az network dns record-set a delete \
+    --yes \
+    --resource-group $RESOURCE_GROUP \
+    --zone-name $ZONE_NAME \
+    --name $RECORD_SET_NAME \
+    --subscription $AZURE_SUBSCRIPTION_ID
+
+# Create a new A record set with the current IP
 az network dns record-set a add-record \
     --resource-group $RESOURCE_GROUP \
     --zone-name $ZONE_NAME \
