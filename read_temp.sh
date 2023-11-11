@@ -6,7 +6,11 @@ DEVICE_DIR="/sys/bus/w1/devices/28-3ce1e3816f48"
 # Path to the file containing the temperature data
 TEMP_FILE="$DEVICE_DIR/w1_slave"
 
-# A function that reads the temperature
+# MQTT details (you should replace these with your details)
+MQTT_BROKER="localhost"  # The hostname or IP address of your MQTT broker
+MQTT_TOPIC="furmountain/johannes/temperature"
+
+# A function that reads and publishes the temperature
 read_temp() {
   # Read the temperature from the device file
   TEMP_DATA=$(cat $TEMP_FILE)
@@ -24,9 +28,12 @@ read_temp() {
 
   # Convert the temperature to degrees Celsius. The temperature data from the file is in millidegrees Celsius.
   TEMP_C=$(echo "scale=3; $TEMP_RAW / 1000" | bc)
-  
+
   # Print the temperature
   echo "Temperature: $TEMP_C °C"
+
+  # Publish the temperature to the MQTT topic
+  mosquitto_pub -h "$MQTT_BROKER" -t "$MQTT_TOPIC" -m "$TEMP_C"
 }
 
 # Main execution
