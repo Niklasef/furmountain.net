@@ -5,7 +5,6 @@ source /home/niklas/.profile
 
 RESOURCE_GROUP="furmountain-net"
 ZONE_NAME="furmountain.net"
-RECORD_SET_NAME="johannes"
 
 # Get the current public IP
 CURRENT_IP=$(curl -s https://api.ipify.org)
@@ -18,13 +17,13 @@ az network dns record-set a delete \
     --yes \
     --resource-group $RESOURCE_GROUP \
     --zone-name $ZONE_NAME \
-    --name $RECORD_SET_NAME \
+    --name $HOST_NAME \
     --subscription $AZURE_SUBSCRIPTION_ID
 
 # Create a new A record set with the current IP
 az network dns record-set a add-record \
     --resource-group $RESOURCE_GROUP \
     --zone-name $ZONE_NAME \
-    --record-set-name $RECORD_SET_NAME \
+    --record-set-name $HOST_NAME \
     --ipv4-address $CURRENT_IP \
     --subscription $AZURE_SUBSCRIPTION_ID
