@@ -13,7 +13,7 @@ MQTT_META_TOPIC="furmountain/jonathan/minecraft_backup/meta"
 INFLUXDB_HOST="localhost"
 INFLUXDB_PORT="8086"
 INFLUXDB_DATABASE="mydb"
-INFLUXDB_MEASUREMENT="acked_minecraft_backups"
+INFLUXDB_MEASUREMENT="acked_backups"
 INFLUXDB_TAG="jonathan"
 
 # Function to fetch acknowledged filenames from InfluxDB
@@ -31,14 +31,17 @@ publish_backup() {
 
   # Publish the filename
   mosquitto_pub -h "$MQTT_BROKER" -p "$MQTT_PORT" -t "$MQTT_META_TOPIC" -m "FILENAME:$filename"
+  echo "Published FILENAME:$filename"
 
-  # Stream the data of the backup file to the MQTT topic
-  gzip -cd "$backup_file" | while IFS= read -r line; do
+  # Stream the compressed data of the backup file to the MQTT topic
+  base64 "$backup_file" | while IFS= read -r line; do
     mosquitto_pub -h "$MQTT_BROKER" -p "$MQTT_PORT" -t "$MQTT_TOPIC" -m "$line"
+    echo "Published encoded data line"
   done
 
   # Publish EOT (End of Transmission) message
   mosquitto_pub -h "$MQTT_BROKER" -p "$MQTT_PORT" -t "$MQTT_META_TOPIC" -m "EOT"
+  echo "Published EOT"
 }
 
 # Main execution
