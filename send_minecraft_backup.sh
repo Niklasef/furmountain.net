@@ -34,14 +34,20 @@ publish_backup() {
   echo "Published FILENAME:$filename"
 
   # Stream the compressed data of the backup file to the MQTT topic
+  local line_count=0
+  local total_bytes=0
   base64 "$backup_file" | while IFS= read -r line; do
     mosquitto_pub -h "$MQTT_BROKER" -p "$MQTT_PORT" -t "$MQTT_TOPIC" -m "$line"
-    echo "Published encoded data line"
+    line_count=$((line_count + 1))
+    total_bytes=$((total_bytes + ${#line}))
+    if (( line_count % 100 == 0 )); then
+      echo "Published $line_count messages, total bytes sent (Base64): $total_bytes"
+    fi
   done
 
   # Publish EOT (End of Transmission) message
   mosquitto_pub -h "$MQTT_BROKER" -p "$MQTT_PORT" -t "$MQTT_META_TOPIC" -m "EOT"
-  echo "Published EOT"
+  echo "Published EOT, total messages: $line_count, total bytes sent (Base64): $total_bytes"
 }
 
 # Main execution
