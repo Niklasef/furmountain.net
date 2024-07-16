@@ -38,9 +38,10 @@ else
   exit 1
 fi
 
-# Delete old backups (older than 7 days)
-find "$BACKUP_DIR" -type f -name "*.tar.gz" -mtime +7 -exec rm {} \;
-echo "$(date) - Deleted backups older than 7 days."
+# Delete old backups, keeping only the 7 newest files
+cd "$BACKUP_DIR" || exit
+ls -t | sed -e '1,7d' | xargs -d '\n' rm -f
+echo "$(date) - Deleted old backups, keeping only the 7 newest files."
 
 # Print a message indicating the backup is complete
 echo "$(date) - Backup completed: $BACKUP_FILE"
