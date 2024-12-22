@@ -3,10 +3,11 @@
 # Source the .profile to get environment variables
 source /home/niklas/.profile
 
+RESOURCE_GROUP="furmountain-net"
+ZONE_NAME="furmountain.net"
+
 # Function to update DNS records
 update_dns() {
-    RESOURCE_GROUP="furmountain-net"
-    ZONE_NAME="furmountain.net"
     # Get the current public IP
     CURRENT_IP=$(curl -s https://api.ipify.org)
 
@@ -38,4 +39,16 @@ update_dns() {
     done
 }
 
+# Function to list all FQDNs
+list_fqdns() {
+    echo "Fetching all FQDNs from Azure DNS..."
+    az network dns record-set list \
+        --resource-group "$RESOURCE_GROUP" \
+        --zone-name "$ZONE_NAME" \
+        --subscription "$AZURE_SUBSCRIPTION_ID" \
+        --query "[].fqdn" \
+        --output tsv
+}
+
 update_dns
+list_fqdns
