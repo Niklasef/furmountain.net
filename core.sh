@@ -42,12 +42,21 @@ update_dns() {
 # Function to list all FQDNs
 list_fqdns() {
     echo "Fetching all FQDNs from Azure DNS..."
-    az network dns record-set list \
+    A_FQDNS=$(az network dns record-set list \
         --resource-group "$RESOURCE_GROUP" \
         --zone-name "$ZONE_NAME" \
         --subscription "$AZURE_SUBSCRIPTION_ID" \
-        --query "[].fqdn" \
-        --output tsv
+        --query "[?type=='Microsoft.Network/dnszones/A'].fqdn" \
+        --output tsv)
+
+    # Convert the result into an array
+    IFS=$'\n' read -r -d '' -a A_FQDNS_ARRAY <<< "$A_FQDNS"
+
+    # Print each FQDN
+    echo "List of FQDNs for A records:"
+    for FQDN in "${A_FQDNS_ARRAY[@]}"; do
+        echo "$FQDN"
+    done
 }
 
 update_dns
