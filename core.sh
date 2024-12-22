@@ -6,7 +6,7 @@ source /home/niklas/.profile
 RESOURCE_GROUP="furmountain-net"
 ZONE_NAME="furmountain.net"
 
-# Function to update DNS records
+ Function to update DNS records
 update_dns() {
     # Get the current public IP
     CURRENT_IP=$(curl -s https://api.ipify.org)
@@ -17,24 +17,47 @@ update_dns() {
     # Convert HOST_NAMES into an array
     IFS=' ' read -r -a HOST_NAMES_ARRAY <<< "$HOST_NAMES"
 
-    # Loop through each host name
-    for HOST_NAME in "${HOST_NAMES_ARRAY[@]}"; do
-        echo "Updating DNS for host: $HOST_NAME"
+    # Check if there are any hostnames
+    if [ ${#HOST_NAMES_ARRAY[@]} -eq 0 ]; then
+        echo "No hostnames provided in HOST_NAMES. Exiting."
+        return
+    fi
 
-        # Delete the existing A record set
-        az network dns record-set a delete \
+    # Register the first hostname as an A record
+    FIRST_HOST_NAME=${HOST_NAMES_ARRAY[0]}
+    echo "Registering A record for: $FIRST_HOST_NAME"
+
+    az network dns record-set a delete \
+        --yes \
+        --resource-group "$RESOURCE_GROUP" \
+        --zone-name "$ZONE_NAME" \
+        --name "$FIRST_HOST_NAME" \
+        --subscription "$AZURE_SUBSCRIPTION_ID"
+
+    az network dns record-set a add-record \
+        --resource-group "$RESOURCE_GROUP" \
+        --zone-name "$ZONE_NAME" \
+        --record-set-name "$FIRST_HOST_NAME" \
+        --ipv4-address "$CURRENT_IP" \
+        --subscription "$AZURE_SUBSCRIPTION_ID"
+
+    # Loop through the remaining hostnames and register as CNAME records
+    for ((i = 1; i < ${#HOST_NAMES_ARRAY[@]}; i++)); do
+        HOST_NAME=${HOST_NAMES_ARRAY[i]}
+        echo "Registering CNAME record for: $HOST_NAME pointing to $FIRST_HOST_NAME.$ZONE_NAME"
+
+        az network dns record-set cname delete \
             --yes \
             --resource-group "$RESOURCE_GROUP" \
             --zone-name "$ZONE_NAME" \
             --name "$HOST_NAME" \
             --subscription "$AZURE_SUBSCRIPTION_ID"
 
-        # Create a new A record set with the current IP
-        az network dns record-set a add-record \
+        az network dns record-set cname set-record \
             --resource-group "$RESOURCE_GROUP" \
             --zone-name "$ZONE_NAME" \
             --record-set-name "$HOST_NAME" \
-            --ipv4-address "$CURRENT_IP" \
+            --cname "$FIRST_HOST_NAME.$ZONE_NAME" \
             --subscription "$AZURE_SUBSCRIPTION_ID"
     done
 }
