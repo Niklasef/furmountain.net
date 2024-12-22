@@ -6,7 +6,7 @@ source /home/niklas/.profile
 RESOURCE_GROUP="furmountain-net"
 ZONE_NAME="furmountain.net"
 
- Function to update DNS records
+# Function to update DNS records
 update_dns() {
     # Get the current public IP
     CURRENT_IP=$(curl -s https://api.ipify.org)
@@ -75,9 +75,17 @@ list_fqdns() {
     # Convert the result into an array
     IFS=$'\n' read -r -d '' -a A_FQDNS_ARRAY <<< "$A_FQDNS"
 
-    # Print each FQDN
-    echo "List of FQDNs for A records:"
+    # Filter out the first hostname from HOST_NAMES_ARRAY
+    REMOTE_FQDNS=()
     for FQDN in "${A_FQDNS_ARRAY[@]}"; do
+        if [[ "$FQDN" != "${HOST_NAMES_ARRAY[0]}." ]]; then
+            REMOTE_FQDNS+=("$FQDN")
+        fi
+    done
+
+    # Print each remote FQDN
+    echo "List of remote FQDNs for A records (excluding the first host):"
+    for FQDN in "${REMOTE_FQDNS[@]}"; do
         echo "$FQDN"
     done
 }
