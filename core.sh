@@ -62,6 +62,22 @@ update_dns() {
     done
 }
 
+# Function to set up the host environment
+setup_host() {
+    local FIRST_HOST_NAME=$1
+
+    echo "Setting up the host environment for $FIRST_HOST_NAME..."
+
+    echo "Registering cron job for host.sh..."
+    CRON_JOB="*/15 * * * * /home/niklas/furmountain.net/host.sh $FIRST_HOST_NAME > /home/niklas/host.log 2>&1"
+
+    # Add the cron job if it doesn't already exist
+    (crontab -l 2>/dev/null | grep -v -F "$CRON_JOB"; echo "$CRON_JOB") | crontab -
+
+    echo "Cron job registered successfully for $FIRST_HOST_NAME."
+    echo "Host environment setup complete."
+}
+
 # Function to list all FQDNs
 list_fqdns() {
     echo "Fetching all FQDNs from Azure DNS..."
@@ -90,5 +106,8 @@ list_fqdns() {
     done
 }
 
+# Extract the first hostname from HOST_NAMES and pass it to setup_host
+IFS=' ' read -r -a HOST_NAMES_ARRAY <<< "$HOST_NAMES"
+setup_host "${HOST_NAMES_ARRAY[0]}"
 update_dns
 list_fqdns
