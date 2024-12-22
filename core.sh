@@ -78,7 +78,7 @@ list_fqdns() {
     # Filter out the first hostname from HOST_NAMES_ARRAY
     REMOTE_FQDNS=()
     for FQDN in "${A_FQDNS_ARRAY[@]}"; do
-        if [[ "$FQDN" != "${HOST_NAMES_ARRAY[0]}.$ZONE_NAME" ]]; then
+        if [[ "$FQDN" != "${HOST_NAMES_ARRAY[0]}.$ZONE_NAME." ]]; then
             REMOTE_FQDNS+=("$FQDN")
         fi
     done
