@@ -7,6 +7,18 @@ if [ -z "$HOST_NAME" ]; then
     exit 1
 fi
 
+# Determine if this is the local host instance
+IS_LOCAL_HOST=false
+if [[ -n "$HOST_NAMES" ]]; then
+    # Extract the first string from HOST_NAMES (assuming it is space-separated)
+    FIRST_HOST_NAME=$(echo "$HOST_NAMES" | awk '{print $1}')
+    if [[ "$HOST_NAME" == "$FIRST_HOST_NAME" ]]; then
+        IS_LOCAL_HOST=true
+    fi
+fi
+
+echo "IS_LOCAL_HOST: $IS_LOCAL_HOST"
+
 publish_local_services() {
     # Ensure required environment variables are set
     if [[ -z "$SERVICES" ]]; then
