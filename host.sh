@@ -19,6 +19,29 @@ fi
 
 echo "IS_LOCAL_HOST: $IS_LOCAL_HOST"
 
+setup_local_services() {
+    if [[ -z "$SERVICES" ]]; then
+        echo "Error: Required environment variable (SERVICES) is not set."
+        exit 1
+    fi
+
+    echo "Setting up the services for $FIRST_HOST_NAME..."
+
+    # Loop through each service in $SERVICES
+    for SERVICE in $SERVICES; do
+        echo "Registering cron job for $SERVICE..."
+
+        # Define the cron job
+        CRON_JOB="*/15 * * * * /home/niklas/furmountain.net/${SERVICE}.sh > /home/niklas/${SERVICE}.log 2>&1"
+
+        # Add the cron job if it doesn't already exist
+        (crontab -l 2>/dev/null | grep -v -F "$CRON_JOB"; echo "$CRON_JOB") | crontab -
+
+        echo "Cron job for $SERVICE registered."
+    done
+    echo "Local services setup completed."
+}
+
 publish_local_services() {
     # Ensure required environment variables are set
     if [[ -z "$SERVICES" ]]; then
@@ -37,4 +60,9 @@ publish_local_services() {
     echo "Done!"
 }
 
-publish_local_services
+if [[ "$IS_LOCAL_HOST" == true ]]; then
+    setup_local_services
+    publish_local_services
+else
+    echo "This is not the local host instance. Skipping service publication."
+fi
