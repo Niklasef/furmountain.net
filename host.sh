@@ -50,12 +50,13 @@ setup_local_services() {
             sudo bash -c "cat > $SYSTEMD_FILE" <<EOF
 [Unit]
 Description=${SERVICE_NAME}-continuous
-After=network.target
+After=network.target mosquitto.service
 
 [Service]
 ExecStart=/home/niklas/furmountain.net/${SERVICE_NAME}-continuous.sh
 Restart=always
 User=niklas
+WorkingDirectory=/home/niklas/furmountain.net
 
 [Install]
 WantedBy=multi-user.target
