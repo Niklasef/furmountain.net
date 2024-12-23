@@ -25,28 +25,57 @@ setup_local_services() {
         exit 1
     fi
 
-    echo "Setting up the services for $FIRST_HOST_NAME..."
+    echo "Setting up services for $HOST_NAME..."
 
     # Loop through each service in $SERVICES
     for SERVICE in $SERVICES; do
-        echo "Registering cron job for $SERVICE..."
+        SERVICE_NAME=$(echo "$SERVICE" | cut -d'-' -f1)
+        SERVICE_TYPE=$(echo "$SERVICE" | cut -d'-' -f2)
 
-        # Define the cron job
-        CRON_JOB="*/15 * * * * /home/niklas/furmountain.net/${SERVICE}.sh > /home/niklas/${SERVICE}.log 2>&1"
+        if [[ "$SERVICE_TYPE" == "polling" ]]; then
+            echo "Registering polling service for $SERVICE_NAME..."
 
-        # Add the cron job if it doesn't already exist
-        (crontab -l 2>/dev/null | grep -v -F "$CRON_JOB"; echo "$CRON_JOB") | crontab -
+            # Define the cron job
+            CRON_JOB="*/15 * * * * /home/niklas/furmountain.net/${SERVICE_NAME}-polling.sh > /home/niklas/${SERVICE_NAME}-polling.log 2>&1"
 
-        echo "Cron job for $SERVICE registered."
+            # Add the cron job if it doesn't already exist
+            (crontab -l 2>/dev/null | grep -v -F "$CRON_JOB"; echo "$CRON_JOB") | crontab -
+
+            echo "Polling service $SERVICE_NAME registered in cron."
+        elif [[ "$SERVICE_TYPE" == "continuous" ]]; then
+            echo "Setting up continuous service for $SERVICE_NAME..."
+
+            # Define the systemd service file
+            SYSTEMD_FILE="/etc/systemd/system/${SERVICE_NAME}-continuous.service"
+            sudo bash -c "cat > $SYSTEMD_FILE" <<EOF
+[Unit]
+Description=${SERVICE_NAME}-continuous
+After=network.target
+
+[Service]
+ExecStart=/home/niklas/furmountain.net/${SERVICE_NAME}-continuous.sh
+Restart=always
+User=niklas
+
+[Install]
+WantedBy=multi-user.target
+EOF
+            # Enable and start the systemd service
+            sudo systemctl enable "${SERVICE_NAME}-continuous.service"
+            sudo systemctl start "${SERVICE_NAME}-continuous.service"
+
+            echo "Continuous service $SERVICE_NAME set up and running."
+        else
+            echo "Unknown service type for $SERVICE. Skipping setup."
+        fi
     done
-    echo "Local services setup completed."
+    echo "Service setup completed."
 }
 
 publish_local_services() {
-    # Ensure required environment variables are set
     if [[ -z "$SERVICES" ]]; then
-    echo "Error: Required environment variables (SERVICES) are not set."
-    exit 1
+        echo "Error: Required environment variable (SERVICES) is not set."
+        exit 1
     fi
 
     # Define the MQTT topic
