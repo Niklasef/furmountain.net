@@ -19,6 +19,35 @@ fi
 
 echo "IS_LOCAL_HOST: $IS_LOCAL_HOST"
 
+setup_service_listener() {
+    SERVICE_NAME=$1
+    SERVICE_LISTENER_FILE="/etc/systemd/system/${HOST_NAME}-${SERVICE_NAME}-listener.service"
+
+    echo "Setting up service listener for $SERVICE_NAME on $HOST_NAME..."
+
+    # Create the systemd service file
+    sudo bash -c "cat > $SERVICE_LISTENER_FILE" <<EOF
+[Unit]
+Description=Listener for ${SERVICE_NAME} on ${HOST_NAME}
+After=network.target mosquitto.service
+
+[Service]
+ExecStart=/home/niklas/furmountain.net/service-listener.sh ${HOST_NAME} ${SERVICE_NAME}
+Restart=always
+User=niklas
+WorkingDirectory=/home/niklas/furmountain.net
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+    # Enable and start the listener service
+    sudo systemctl enable "${HOST_NAME}-${SERVICE_NAME}-listener.service"
+    sudo systemctl start "${HOST_NAME}-${SERVICE_NAME}-listener.service"
+
+    echo "Service listener for $SERVICE_NAME on $HOST_NAME set up and running."
+}
+
 setup_local_services() {
     if [[ -z "$SERVICES" ]]; then
         echo "Error: Required environment variable (SERVICES) is not set."
@@ -31,6 +60,8 @@ setup_local_services() {
     for SERVICE in $SERVICES; do
         SERVICE_NAME=$(echo "$SERVICE" | cut -d'-' -f1)
         SERVICE_TYPE=$(echo "$SERVICE" | cut -d'-' -f2)
+
+        setup_service_listener "$SERVICE_NAME"
 
         if [[ "$SERVICE_TYPE" == "polling" ]]; then
             echo "Registering polling service for $SERVICE_NAME..."

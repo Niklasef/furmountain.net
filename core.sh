@@ -110,4 +110,4 @@ list_fqdns() {
 IFS=' ' read -r -a HOST_NAMES_ARRAY <<< "$HOST_NAMES"
 setup_host "${HOST_NAMES_ARRAY[0]}"
 update_dns
-list_fqdns
+list_fqdns #TODO: setup host.sh for each remote fqdns
