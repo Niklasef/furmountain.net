@@ -111,7 +111,7 @@ publish_local_services() {
     fi
 
     # Define the MQTT topic
-    MQTT_LOCAL_HOST_TOPIC="furmountain/$HOST_NAME"
+    MQTT_LOCAL_HOST_TOPIC="services"
     MQTT_LOCAL_BROKER="localhost"
 
     # Publish the SERVICES value to the topic

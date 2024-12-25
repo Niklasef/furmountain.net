@@ -10,9 +10,22 @@ fi
 HOST="$1"
 SERVICE="$2"
 
+# Determine MQTT broker based on the host
+if [[ -n "$HOST_NAMES" ]]; then
+    # Extract the first hostname from HOST_NAMES
+    FIRST_HOST_NAME=$(echo "$HOST_NAMES" | awk '{print $1}')
+    if [[ "$HOST" == "$FIRST_HOST_NAME" ]]; then
+        MQTT_BROKER="localhost"
+    else
+        MQTT_BROKER="${HOST}.furmountain.net:1883"  # Standard MQTT port
+    fi
+else
+    echo "Error: HOST_NAMES environment variable is not set."
+    exit 1
+fi
+
 # MQTT Parameters
-MQTT_BROKER="localhost"
-MQTT_TOPIC="furmountain/${HOST}/${SERVICE}"
+MQTT_TOPIC="${SERVICE}"
 
 # InfluxDB Parameters
 INFLUXDB_HOST="localhost"
