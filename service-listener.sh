@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Source the .profile to get environment variables
+source /home/niklas/.profile
+
 # Validate input parameters
 if [[ $# -lt 2 ]]; then
     echo "Usage: $0 <host> <service>"

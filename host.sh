@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Source the .profile to get environment variables
+source /home/niklas/.profile
+
 HOST_NAME=$1
 
 if [ -z "$HOST_NAME" ]; then
@@ -96,9 +99,9 @@ EOF
             sudo systemctl enable "${SERVICE_NAME}-continuous.service"
             sudo systemctl start "${SERVICE_NAME}-continuous.service"
 
-            echo "Continuous service $SERVICE_NAME set up and running."
+            echo "Continuous service '$SERVICE_NAME' set up and running."
         else
-            echo "Unknown service type for $SERVICE. Skipping setup."
+            echo "Unknown service type for '$SERVICE'. Skipping setup."
         fi
     done
     echo "Service setup completed."
