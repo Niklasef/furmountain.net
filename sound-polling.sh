@@ -1,7 +1,7 @@
 #!/bin/bash
 
 MQTT_BROKER="localhost"
-MQTT_TOPIC="sound-polling"
+MQTT_TOPIC="sound"
 
 # Generate a random dummy sound intensity value
 generate_dummy_sound() {
