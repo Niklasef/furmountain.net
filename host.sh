@@ -126,13 +126,12 @@ publish_local_services() {
 
 listen_to_remote_services() {
     REMOTE_HOST="$HOST_NAME.furmountain.net"
-    MQTT_BROKER="${REMOTE_HOST}:1883"
     MQTT_TOPIC="services"
 
-    echo "Listening to remote services on ${MQTT_BROKER}, topic ${MQTT_TOPIC}..."
+    echo "Listening to remote services on ${REMOTE_HOST}, topic ${MQTT_TOPIC}..."
 
     # Subscribe to the MQTT topic and process incoming messages
-    mosquitto_sub -h "${MQTT_BROKER}" -t "${MQTT_TOPIC}" | while read -r message; do
+    mosquitto_sub -h "${REMOTE_HOST}" -t "${MQTT_TOPIC}" | while read -r message; do
         echo "Received remote services list: ${message}"
 
         # Split the message into individual services
