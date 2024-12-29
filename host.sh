@@ -124,9 +124,31 @@ publish_local_services() {
     echo "Done!"
 }
 
+listen_to_remote_services() {
+    REMOTE_HOST="$HOST_NAME.furmountain.net"
+    MQTT_BROKER="${REMOTE_HOST}:1883"
+    MQTT_TOPIC="services"
+
+    echo "Listening to remote services on ${MQTT_BROKER}, topic ${MQTT_TOPIC}..."
+
+    # Subscribe to the MQTT topic and process incoming messages
+    mosquitto_sub -h "${MQTT_BROKER}" -t "${MQTT_TOPIC}" | while read -r message; do
+        echo "Received remote services list: ${message}"
+
+        # Split the message into individual services
+        for SERVICE in $message; do
+            # Extract service name (everything before the dash)
+            SERVICE_NAME=$(echo "$SERVICE" | cut -d'-' -f1)
+
+            # Set up a listener for the remote service
+            setup_service_listener "$SERVICE_NAME" "$HOST_NAME"
+        done
+    done
+}
+
 if [[ "$IS_LOCAL_HOST" == true ]]; then
     setup_local_services
     publish_local_services
 else
-    echo "This is not the local host instance. Skipping service publication."
+    listen_to_remote_services
 fi
