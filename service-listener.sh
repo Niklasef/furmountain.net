@@ -20,7 +20,7 @@ if [[ -n "$HOST_NAMES" ]]; then
     if [[ "$HOST" == "$FIRST_HOST_NAME" ]]; then
         MQTT_BROKER="localhost"
     else
-        MQTT_BROKER="${HOST}.furmountain.net:1883"  # Standard MQTT port
+        MQTT_BROKER="${HOST}.furmountain.net"  # Standard MQTT port
     fi
 else
     echo "Error: HOST_NAMES environment variable is not set."
