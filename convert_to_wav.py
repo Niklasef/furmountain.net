@@ -14,8 +14,10 @@ with open(raw_data_file, "r") as file:
     raw_values = [int(line.strip()) for line in file]
 
 # Convert raw ADC values to 16-bit audio format
-audio_samples = np.array(raw_values, dtype=np.int16) - 32768
-audio_samples = audio_samples // 2  # Scale to 16-bit range
+# Scale to fit within the range of -32768 to 32767
+audio_samples = np.array(raw_values, dtype=np.int32) - 32768
+audio_samples = np.clip(audio_samples, -32768, 32767)  # Ensure no overflow
+audio_samples = audio_samples.astype(np.int16)  # Convert to 16-bit
 
 # Write to WAV file
 with wave.open(wav_output_file, "w") as wav_file:
