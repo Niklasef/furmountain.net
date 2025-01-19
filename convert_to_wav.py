@@ -16,6 +16,7 @@ recording_duration = 5  # seconds (used in raw data recording)
 actual_sample_rate = num_samples / recording_duration
 print(f"Number of samples: {num_samples}")
 print(f"Actual sample rate: {actual_sample_rate:.2f} Hz")
+print(f"Recording duration: {recording_duration:.2f} seconds")
 
 # Convert raw ADC values to 16-bit audio format
 audio_samples = np.array(raw_values, dtype=np.int32) - 32768

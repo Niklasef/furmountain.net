@@ -20,13 +20,11 @@ duration = 5  # seconds
 
 print(f"Recording {duration} seconds of raw data at {sample_rate} Hz to {raw_data_file}...")
 
-# Record raw ADC data with precise timing
+# Record raw ADC data with consistent sleep timing
 with open(raw_data_file, "w") as file:
-    start_time = time.perf_counter()
-    for i in range(sample_rate * duration):
+    for _ in range(sample_rate * duration):
         raw_value = mic_channel.value
         file.write(f"{raw_value}\n")
-        while time.perf_counter() - start_time < (i + 1) / sample_rate:
-            pass
+        time.sleep(1 / sample_rate)
 
 print(f"Raw data saved to {raw_data_file}.")
