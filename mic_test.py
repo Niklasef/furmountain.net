@@ -1,6 +1,7 @@
 import time
 import busio
 import digitalio
+import numpy as np
 from board import SCLK, MOSI, MISO, D8
 from adafruit_mcp3xxx.mcp3008 import MCP3008
 from adafruit_mcp3xxx.analog_in import AnalogIn
@@ -15,37 +16,32 @@ mic_channel = AnalogIn(mcp, 0)
 
 # Configuration
 raw_data_file = "raw_sound_data.txt"
-sample_rate = 3000  # Hz
 duration = 5  # seconds
-num_samples = sample_rate * duration
 
-print(f"Recording {duration} seconds of audio at {sample_rate} Hz...")
+print(f"Recording audio for {duration} seconds at maximum speed...")
 
-# Buffer to store raw ADC values
-data_buffer = []
-time_per_sample = 1 / sample_rate  # Target time per sample in seconds
+# Pre-allocate buffer with a reasonable estimate for maximum samples
+max_estimated_samples = 500000  # Adjust if needed based on your system
+data_buffer = np.zeros(max_estimated_samples, dtype=np.uint16)
 
-# Record raw ADC data
+# Start recording at max speed
 start_time = time.perf_counter()
-for _ in range(num_samples):
-    raw_value = mic_channel.value
-    data_buffer.append(raw_value)
+index = 0
 
-    # Maintain precise timing
-    elapsed_time = time.perf_counter() - start_time
-    expected_time = len(data_buffer) * time_per_sample
-    if expected_time > elapsed_time:
-        time.sleep(expected_time - elapsed_time)
+while time.perf_counter() - start_time < duration:
+    # Read and store the sample
+    data_buffer[index] = mic_channel.value
+    index += 1
 
-print("Recording complete. Writing data to file...")
+# Trim the buffer to actual size
+data_buffer = data_buffer[:index]
+
+print(f"Recording complete. Total samples recorded: {len(data_buffer)}")
 
 # Write buffered data to file
-with open(raw_data_file, "w") as file:
-    file.write("\n".join(map(str, data_buffer)))
-
+np.savetxt(raw_data_file, data_buffer, fmt="%d")
 print(f"Raw data saved to {raw_data_file}.")
 
 # Debugging information
-print(f"Number of samples: {len(data_buffer)}")
 actual_sample_rate = len(data_buffer) / duration
 print(f"Actual sample rate: {actual_sample_rate:.2f} Hz")
