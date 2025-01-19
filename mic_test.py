@@ -15,14 +15,15 @@ mic_channel = AnalogIn(mcp, 0)
 
 # File to store raw ADC values
 raw_data_file = "raw_sound_data.txt"
-sample_rate = 2000  # Hz
+sample_rate = 1000  # Hz
 duration = 5  # seconds
 
 print(f"Recording {duration} seconds of raw data at {sample_rate} Hz to {raw_data_file}...")
 
 # Record raw ADC data with consistent sleep timing
 with open(raw_data_file, "w") as file:
-    for _ in range(sample_rate * duration):
+    start_time = time.time()
+    while time.time() - start_time < duration:
         raw_value = mic_channel.value
         file.write(f"{raw_value}\n")
         time.sleep(1 / sample_rate)
