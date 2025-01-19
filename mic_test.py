@@ -1,6 +1,7 @@
 import time
 import busio
 import digitalio
+from board import SCLK, MOSI, MISO, D8  # Adjust GPIO pins if needed
 from adafruit_mcp3xxx.analog_in import AnalogIn
 from adafruit_mcp3xxx.mcp3008 import MCP3008
 
