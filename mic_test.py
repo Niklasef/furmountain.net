@@ -15,7 +15,7 @@ mic_channel = AnalogIn(mcp, 0)
 
 # File to store raw ADC values
 raw_data_file = "raw_sound_data.txt"
-sample_rate = 4000  # Hz
+sample_rate = 2000  # Hz
 duration = 5  # seconds
 
 print(f"Recording {duration} seconds of raw data at {sample_rate} Hz to {raw_data_file}...")
