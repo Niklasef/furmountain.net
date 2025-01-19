@@ -2,20 +2,16 @@ import time
 import busio
 import digitalio
 from board import SCLK, MOSI, MISO, D8  # Adjust GPIO pins if needed
-from adafruit_mcp3xxx.mcp3008 import MCP3008
 from adafruit_mcp3xxx.analog_in import AnalogIn
+from adafruit_mcp3xxx.mcp3008 import MCP3008
 
-# Initialize SPI bus
+# SPI and MCP3008 initialization (unchanged)
 spi = busio.SPI(clock=SCLK, MOSI=MOSI, MISO=MISO)
-
-# Chip select (CS) pin setup
-cs = digitalio.DigitalInOut(D8)  # CE0 pin
-
-# MCP3008 initialization
+cs = digitalio.DigitalInOut(D8)  # Chip select pin
 mcp = MCP3008(spi, cs)
 
-# Create an analog input channel on CH0
-mic_channel = AnalogIn(mcp, MCP3008.P0)
+# Correct way to create an AnalogIn channel
+mic_channel = AnalogIn(mcp, MCP3008.Pin.CH0)  # Corrected here
 
 print("Reading microphone data...")
 try:
