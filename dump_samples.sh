@@ -12,7 +12,7 @@ echo "Dumping $SAMPLE_COUNT samples to $OUTPUT_FILE from $SPI_DEVICE..."
 for ((i = 0; i < SAMPLE_COUNT; i++)); do
     # Send SPI command and capture response
     RESPONSE=$(echo -e "\x01\x80\x00" | spi-pipe --device="$SPI_DEVICE" --speed=500000 --blocksize=3)
-    RAW_HEX=$(echo "$RESPONSE" | xxd -p -c 6)  # Convert binary to hex (6 characters for 3 bytes)
+    RAW_HEX=$(echo "$RESPONSE" | hexdump -v -e '/1 "%02X"' | cut -c 1-6)
 
     # Convert hex to decimal (10-bit data is in the last 10 bits)
     DECIMAL=$((0x${RAW_HEX:1:4} >> 6))  # Extract 10 bits and convert
