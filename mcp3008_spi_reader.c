@@ -7,26 +7,15 @@
 #include <stdlib.h>
 #include <time.h>
 
-#define SPI_PATH "/dev/spidev0.0" // Adjust if using a different SPI device
-#define SPI_SPEED 1000000 // gives 16kHz sample rate
-#define SPI_BITS 8                 // Bits per word
+#define SPI_PATH "/dev/spidev0.0"
+#define SPI_SPEED 1000000
+#define SPI_BITS 8
 #define SPI_DELAY 0
-#define RECORD_DURATION 5          // Record duration in seconds
-#define OUTPUT_FILE "raw_dump.bin" // Output file for raw data
+#define RECORD_DURATION 5
+#define OUTPUT_FILE "raw_audio_scaled.bin"
 
-// Function to read data from MCP3008
 uint16_t read_adc(int spi_fd, uint8_t channel) {
-    if (channel > 7) {
-        fprintf(stderr, "Invalid channel: %d\n", channel);
-        exit(1);
-    }
-
-    uint8_t tx[] = {
-        0x01, // Start bit
-        (uint8_t)((0x08 | channel) << 4), // Configuration byte
-        0x00  // Dummy byte to receive data
-    };
-
+    uint8_t tx[] = {0x01, (uint8_t)((0x08 | channel) << 4), 0x00};
     uint8_t rx[3] = {0};
     struct spi_ioc_transfer tr = {
         .tx_buf = (unsigned long)tx,
@@ -38,27 +27,14 @@ uint16_t read_adc(int spi_fd, uint8_t channel) {
     };
 
     if (ioctl(spi_fd, SPI_IOC_MESSAGE(1), &tr) < 0) {
-        perror("Failed to communicate with MCP3008");
+        perror("SPI communication failed");
         exit(1);
     }
 
-    // Combine the received bytes to form the 10-bit ADC value
     return ((rx[1] & 0x03) << 8) | rx[2];
 }
 
-int main(int argc, char *argv[]) {
-    if (argc != 2) {
-        fprintf(stderr, "Usage: %s <channel>\n", argv[0]);
-        return 1;
-    }
-
-    int channel = atoi(argv[1]);
-
-    if (channel < 0 || channel > 7) {
-        fprintf(stderr, "Channel must be between 0 and 7.\n");
-        return 1;
-    }
-
+int main() {
     int spi_fd = open(SPI_PATH, O_RDWR);
     if (spi_fd < 0) {
         perror("Failed to open SPI device");
@@ -91,8 +67,10 @@ int main(int argc, char *argv[]) {
     clock_gettime(CLOCK_MONOTONIC, &start);
 
     while (1) {
-        uint16_t value = read_adc(spi_fd, channel);
-        fwrite(&value, sizeof(uint16_t), 1, output_file);
+        uint16_t raw_value = read_adc(spi_fd, 0);
+        int16_t centered_value = (raw_value - 512) * 64;  // Center and scale
+
+        fwrite(&centered_value, sizeof(int16_t), 1, output_file);
 
         clock_gettime(CLOCK_MONOTONIC, &current);
         double elapsed_time = (current.tv_sec - start.tv_sec) +
