@@ -9,7 +9,7 @@
 
 
 #define SPI_PATH "/dev/spidev0.0" // Adjust if using a different SPI device
-#define SPI_SPEED 1000000          // SPI speed (1 MHz)
+#define SPI_SPEED 3600000
 #define SPI_BITS 8                 // Bits per word
 #define SPI_DELAY 0
 
