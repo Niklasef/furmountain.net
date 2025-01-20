@@ -106,7 +106,7 @@ int main(int argc, char *argv[]) {
             clock_gettime(CLOCK_MONOTONIC, &start);
         }
 
-        usleep(delay);
+        // usleep(delay);
     }
 
     close(spi_fd);
