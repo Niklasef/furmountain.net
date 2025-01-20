@@ -7,11 +7,12 @@
 #include <stdlib.h>
 #include <time.h>
 
-
 #define SPI_PATH "/dev/spidev0.0" // Adjust if using a different SPI device
-#define SPI_SPEED 3600000
+#define SPI_SPEED 1000000 // gives 16kHz sample rate
 #define SPI_BITS 8                 // Bits per word
 #define SPI_DELAY 0
+#define RECORD_DURATION 5          // Record duration in seconds
+#define OUTPUT_FILE "raw_dump.bin" // Output file for raw data
 
 // Function to read data from MCP3008
 uint16_t read_adc(int spi_fd, uint8_t channel) {
@@ -46,21 +47,15 @@ uint16_t read_adc(int spi_fd, uint8_t channel) {
 }
 
 int main(int argc, char *argv[]) {
-    if (argc != 3) {
-        fprintf(stderr, "Usage: %s <channel> <samples_per_second>\n", argv[0]);
+    if (argc != 2) {
+        fprintf(stderr, "Usage: %s <channel>\n", argv[0]);
         return 1;
     }
 
     int channel = atoi(argv[1]);
-    int samples_per_second = atoi(argv[2]);
 
     if (channel < 0 || channel > 7) {
         fprintf(stderr, "Channel must be between 0 and 7.\n");
-        return 1;
-    }
-
-    if (samples_per_second <= 0) {
-        fprintf(stderr, "Samples per second must be positive.\n");
         return 1;
     }
 
@@ -85,30 +80,32 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    useconds_t delay = 1000000 / samples_per_second; // Microseconds per sample
-    struct timespec start, end;
-
-    clock_gettime(CLOCK_MONOTONIC, &start);
-
-    int samples = 0;
-    while (1) {
-        uint16_t value = read_adc(spi_fd, channel);
-        samples++;
-        
-        clock_gettime(CLOCK_MONOTONIC, &end);
-        double elapsed_time = (end.tv_sec - start.tv_sec) +
-                              (end.tv_nsec - start.tv_nsec) / 1e9;
-
-        if (elapsed_time >= 1.0) {
-            printf("Sample rate: %.2f samples/sec\n", samples / elapsed_time);
-            fflush(stdout);
-            samples = 0;
-            clock_gettime(CLOCK_MONOTONIC, &start);
-        }
-
-        // usleep(delay);
+    FILE *output_file = fopen(OUTPUT_FILE, "wb");
+    if (!output_file) {
+        perror("Failed to open output file");
+        close(spi_fd);
+        return 1;
     }
 
+    struct timespec start, current;
+    clock_gettime(CLOCK_MONOTONIC, &start);
+
+    while (1) {
+        uint16_t value = read_adc(spi_fd, channel);
+        fwrite(&value, sizeof(uint16_t), 1, output_file);
+
+        clock_gettime(CLOCK_MONOTONIC, &current);
+        double elapsed_time = (current.tv_sec - start.tv_sec) +
+                              (current.tv_nsec - start.tv_nsec) / 1e9;
+
+        if (elapsed_time >= RECORD_DURATION) {
+            break;
+        }
+    }
+
+    fclose(output_file);
     close(spi_fd);
+
+    printf("Data saved to %s\n", OUTPUT_FILE);
     return 0;
 }
