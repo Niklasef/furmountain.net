@@ -68,7 +68,7 @@ int main() {
 
     while (1) {
         uint16_t raw_value = read_adc(spi_fd, 0);
-        int16_t centered_value = (raw_value - 512) * 64;  // Center and scale
+        int16_t centered_value = (raw_value - 381) * 16;  // Center and scale
 
         fwrite(&centered_value, sizeof(int16_t), 1, output_file);
 
