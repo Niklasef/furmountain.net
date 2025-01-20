@@ -1,4 +1,49 @@
+#include <stdio.h>
+#include <stdint.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <sys/ioctl.h>
+#include <linux/spi/spidev.h>
+#include <stdlib.h>
 #include <time.h>
+
+
+#define SPI_PATH "/dev/spidev0.0" // Adjust if using a different SPI device
+#define SPI_SPEED 1000000          // SPI speed (1 MHz)
+#define SPI_BITS 8                 // Bits per word
+#define SPI_DELAY 0
+
+// Function to read data from MCP3008
+uint16_t read_adc(int spi_fd, uint8_t channel) {
+    if (channel > 7) {
+        fprintf(stderr, "Invalid channel: %d\n", channel);
+        exit(1);
+    }
+
+    uint8_t tx[] = {
+        0x01, // Start bit
+        (uint8_t)((0x08 | channel) << 4), // Configuration byte
+        0x00  // Dummy byte to receive data
+    };
+
+    uint8_t rx[3] = {0};
+    struct spi_ioc_transfer tr = {
+        .tx_buf = (unsigned long)tx,
+        .rx_buf = (unsigned long)rx,
+        .len = sizeof(tx),
+        .delay_usecs = SPI_DELAY,
+        .speed_hz = SPI_SPEED,
+        .bits_per_word = SPI_BITS,
+    };
+
+    if (ioctl(spi_fd, SPI_IOC_MESSAGE(1), &tr) < 0) {
+        perror("Failed to communicate with MCP3008");
+        exit(1);
+    }
+
+    // Combine the received bytes to form the 10-bit ADC value
+    return ((rx[1] & 0x03) << 8) | rx[2];
+}
 
 int main(int argc, char *argv[]) {
     if (argc != 3) {
